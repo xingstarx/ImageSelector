@@ -20,6 +20,11 @@ public class ISListConfig implements Serializable {
     public boolean needCrop;
 
     /**
+     * 是否需要等比例裁剪
+     */
+    public boolean needScaleCrop;
+
+    /**
      * 是否多选
      */
     public boolean multiSelect = false;
@@ -90,6 +95,7 @@ public class ISListConfig implements Serializable {
 
     public ISListConfig(Builder builder) {
         this.needCrop = builder.needCrop;
+        this.needScaleCrop = builder.needScaleCrop;
         this.multiSelect = builder.multiSelect;
         this.rememberSelected = builder.rememberSelected;
         this.maxNum = builder.maxNum;
@@ -113,6 +119,7 @@ public class ISListConfig implements Serializable {
     public static class Builder implements Serializable {
 
         private boolean needCrop = false;
+        private boolean needScaleCrop = false;
         private boolean multiSelect = true;
         private boolean rememberSelected = true;
         private int maxNum = 9;
@@ -155,6 +162,11 @@ public class ISListConfig implements Serializable {
 
         public Builder needCrop(boolean needCrop) {
             this.needCrop = needCrop;
+            return this;
+        }
+
+        public Builder needScaleCrop(boolean needScaleCrop) {
+            this.needScaleCrop = needScaleCrop;
             return this;
         }
 

@@ -3,10 +3,12 @@ package com.yuyh.library.imgsel.ui;
 import android.Manifest;
 import android.app.Activity;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,6 +18,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -75,7 +78,6 @@ public class ISListActivity extends FragmentActivity implements View.OnClickList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_img_sel);
-
         config = (ISListConfig) getIntent().getSerializableExtra("config");
 
         // Android 6.0 checkSelfPermission
@@ -153,7 +155,7 @@ public class ISListActivity extends FragmentActivity implements View.OnClickList
 
     @Override
     public void onSingleImageSelected(String path) {
-        if (config.needCrop) {
+        if (config.needCrop || config.needScaleCrop) {
             crop(path);
         } else {
             Constant.imageList.add(path);
@@ -174,7 +176,7 @@ public class ISListActivity extends FragmentActivity implements View.OnClickList
     @Override
     public void onCameraShot(File imageFile) {
         if (imageFile != null) {
-            if (config.needCrop) {
+            if (config.needCrop || config.needScaleCrop) {
                 crop(imageFile.getAbsolutePath());
             } else {
                 Constant.imageList.add(imageFile.getAbsolutePath());
@@ -200,10 +202,24 @@ public class ISListActivity extends FragmentActivity implements View.OnClickList
         Intent intent = new Intent("com.android.camera.action.CROP");
         intent.setDataAndType(getImageContentUri(new File(imagePath)), "image/*");
         intent.putExtra("crop", "true");
-        intent.putExtra("aspectX", config.aspectX);
-        intent.putExtra("aspectY", config.aspectY);
-        intent.putExtra("outputX", config.outputX);
-        intent.putExtra("outputY", config.outputY);
+        if (config.needScaleCrop) {
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(imagePath, opts);
+            int imageWidth = opts.outWidth;
+            int imageHeight = opts.outHeight;
+            WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+            int screenWidth = wm.getDefaultDisplay().getWidth();
+            intent.putExtra("aspectX", 1);
+            intent.putExtra("aspectY", imageHeight * 1.0f / imageWidth);
+            intent.putExtra("outputX", screenWidth);
+            intent.putExtra("outputY", screenWidth * imageHeight * 1.0f / imageWidth);
+        } else {
+            intent.putExtra("aspectX", config.aspectX);
+            intent.putExtra("aspectY", config.aspectY);
+            intent.putExtra("outputX", config.outputX);
+            intent.putExtra("outputY", config.outputY);
+        }
         intent.putExtra("scale", true);
         intent.putExtra("scaleUpIfNeeded", true);
         intent.putExtra("return-data", false);
