@@ -5,11 +5,53 @@ Android 图片选择器。充分自由定制，极大程度简化使用，支持
 <img src="https://github.com/smuyyh/ImageSelector/blob/master/screenshot/screen_1.png?raw=true" width=280/>
 
 ## 依赖
+
+由于fork了原项目，并作出了一定程度的修改，面前是兼容原来的功能
+所以依赖上是需要使用下面的方式（jitpack）
+
 ```
 dependencies {
-    compile 'com.yuyh.imgsel:library:2.0.2'
+    //compile 'com.yuyh.imgsel:library:2.0.2'
+    compile 'com.github.xingstarx:ImageSelector:master-SNAPSHOT'
 }
 ```
+
+```
+allprojects {
+		repositories {
+			maven { url 'https://jitpack.io' }
+		}
+	}
+```
+
+## 变更
+fork过来的目的是为了支持原图等比缩放,变更核心代码如下:
+
+```
+cropImagePath = file.getAbsolutePath();
+        Intent intent = new Intent("com.android.camera.action.CROP");
+        intent.setDataAndType(getImageContentUri(new File(imagePath)), "image/*");
+        intent.putExtra("crop", "true");
+        if (config.needScaleCrop) {
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(imagePath, opts);
+            int imageWidth = opts.outWidth;
+            int imageHeight = opts.outHeight;
+            WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+            int screenWidth = wm.getDefaultDisplay().getWidth();
+            intent.putExtra("aspectX", 1);
+            intent.putExtra("aspectY", imageHeight * 1.0f / imageWidth);
+            intent.putExtra("outputX", screenWidth);
+            intent.putExtra("outputY", screenWidth * imageHeight * 1.0f / imageWidth);
+        } else {
+            intent.putExtra("aspectX", config.aspectX);
+            intent.putExtra("aspectY", config.aspectY);
+            intent.putExtra("outputX", config.outputX);
+            intent.putExtra("outputY", config.outputY);
+        }
+```
+
 
 ## 版本
 
